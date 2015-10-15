@@ -1,15 +1,29 @@
 #!/usr/bin/env  Python
 #-*- coding=utf-8 -*-
 
+'''
+Description : statistic indicator area ranks by entropy method
+require     : windows Anaconda-2.3.0
+author      : shizhongxian@126.com
+usage  $python sd_em.py  -f table.txt 
+'''
+
 import pandas as pd
 import numpy as np
-from sklearn.decomposition import FactorAnalysis
-from sklearn import preprocessing
-from scipy import linalg
-from sdtool import  sdtool
 import math
+import logging
+import sys
+import os
+from optparse import OptionParser
 
 #global area_list
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                    datefmt='%a, %d %b %Y %H:%M:%S',
+                    filename="C:\\LOG\\entropy_method.log",
+                    filemode='a')
+
 
 def zeor_one_norm(values):
     '''
@@ -31,17 +45,21 @@ def data_set(fname):
     #data = df.rename(columns={'月份顺序排序':'m_order','正式指标':'indicator','正式数值':'value'})
     data = df.rename(columns={'地区':'area','正式指标':'indicator','正式数值':'value'})
     pivoted = data.pivot('area','indicator','value')
+    indicators = pivoted.columns
     #删除空值行
     cleaned_data = pivoted.dropna(axis=0)
     area_list = pivoted.index
-    return cleaned_data,area_list
+    return cleaned_data,area_list,indicators
 
-def sd_em(fname,components=2):
+def sd_em(fname,result_name):
     '''
     entropy method计算   http://blog.sina.com.cn/s/blog_6163bdeb0102dvow.html
     '''
-    cl_data,area_list = data_set(fname)
+    cl_data,area_list,indicators = data_set(fname)
     origin_values = cl_data.values
+    indi_list = indicators.tolist()
+    logging.info("cleaned  area:"+" ".join(area_list))
+    logging.info("selected indi:"+" ".join(indi_list))
 
     #数据标准化
     values = zeor_one_norm(origin_values)
@@ -61,7 +79,7 @@ def sd_em(fname,components=2):
     scores_list = scores.tolist()
     
     #
-    fout = open("em_result.txt","w")
+    fout = open(result_name,"w")
     fout.write("\n===============================\n")
     if len(area_list) == len(scores):
         area_scores = zip(scores_list,area_list)
@@ -75,12 +93,33 @@ def sd_em(fname,components=2):
     else:
         print "caculated result not equal to area_list"
     fout.close()
-    print "save to em_result.txt"
+    print "save to ",result_name
     
 if __name__ == "__main__":
-    table_file_name = "table.txt"
-    sdtool.rec2table("2013_10.txt", table_file_name)
-    sd_em(table_file_name)
+    optparser = OptionParser()
+    optparser.add_option('-f', '--inputFile',
+                         dest='input',
+                         help='filename containing csv convert from rec',
+                         default=None)
+    (options, args) = optparser.parse_args()
+    #inFile = None
+    inFile = "table.txt"
+    if options.input is None:
+            inFile = sys.stdin
+            #inFile = "INTEGRATED-DATASET.csv"
+    elif options.input is not None:
+            inFile = options.input
+    else:
+            print 'No dataset filename specified, system with exit\n'
+            sys.exit('System will exit')
+    
+    full_name = os.path.realpath(inFile)
+    pos = full_name.find(".txt")
+    result_name = full_name[:pos] + "_result.txt"
+    
+    #table_file_name = "table.txt"
+    #sdtool.rec2table("2013_10.txt", table_file_name)
+    sd_em(full_name,result_name)
     
     
     
