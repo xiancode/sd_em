@@ -14,6 +14,7 @@ import math
 import logging
 import sys
 import os
+import string
 from optparse import OptionParser
 
 #global area_list
@@ -74,12 +75,32 @@ def sd_em(fname,result_name):
     Ee = np.sum(e_)
     g = (1-e_)/(m-Ee)
     #calculate w
+    print g
     w = g/sum(g)
     scores = np.dot(origin_values,w.T)
     scores_list = scores.tolist()
     
+    
+    #输出
+    display_e_ = map(lambda x:str(round(x,4)),e_)
+    dispaly_w  = map(lambda x:str(round(x,4)),w)
+    
     #
     fout = open(result_name,"w")
+    
+    fout.write("指标\t")
+    fout.write("\t".join(indi_list))
+    fout.write("\n")
+    
+    fout.write("指标熵值\t")
+    fout.write("\t".join(display_e_))
+    fout.write("\n")
+    
+    fout.write("指标权重\t")
+    fout.write("\t".join(dispaly_w))
+    fout.write("\n")
+    
+    
     fout.write("\n===============================\n")
     if len(area_list) == len(scores):
         area_scores = zip(scores_list,area_list)
@@ -103,7 +124,7 @@ if __name__ == "__main__":
                          default=None)
     (options, args) = optparser.parse_args()
     #inFile = None
-    inFile = "table.txt"
+    
     if options.input is None:
             inFile = sys.stdin
             #inFile = "INTEGRATED-DATASET.csv"
@@ -112,7 +133,7 @@ if __name__ == "__main__":
     else:
             print 'No dataset filename specified, system with exit\n'
             sys.exit('System will exit')
-    
+    inFile = "table.txt"
     full_name = os.path.realpath(inFile)
     pos = full_name.find(".txt")
     result_name = full_name[:pos] + "_result.txt"
