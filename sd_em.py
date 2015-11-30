@@ -49,7 +49,7 @@ def data_set(fname):
     indicators = pivoted.columns
     #删除空值行
     cleaned_data = pivoted.dropna(axis=0)
-    area_list = pivoted.index
+    area_list = cleaned_data.index
     return cleaned_data,area_list,indicators
 
 def sd_em(fname,result_name):
