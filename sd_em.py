@@ -133,7 +133,7 @@ if __name__ == "__main__":
     else:
             print 'No dataset filename specified, system with exit\n'
             sys.exit('System will exit')
-    inFile = "table.txt"
+
     full_name = os.path.realpath(inFile)
     pos = full_name.find(".txt")
     result_name = full_name[:pos] + "_result.txt"
